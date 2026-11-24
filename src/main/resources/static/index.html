@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant Message Server - Web GUI</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-nav">
+            <div class="nav-brand">
+                <svg class="brand-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <div class="brand-text">
+                    <span class="brand-title">Instant Message Server</span>
+                    <span class="brand-badge">UTB FAI</span>
+                </div>
+            </div>
+
+            <div class="nav-status">
+                <div id="connectionStatus" class="status-pill status-disconnected">
+                    <span class="status-dot"></span>
+                    <span class="status-label">Connecting...</span>
+                </div>
+            </div>
+
+            <div class="nav-actions">
+                <div id="userProfile" class="user-profile hidden">
+                    <div class="user-avatar" id="navAvatar">U</div>
+                    <span class="user-name" id="navUserName">Guest</span>
+                    <button id="btnChangeName" class="btn btn-secondary btn-sm" title="Change nickname (#setMyName)">
+                        Change Name
+                    </button>
+                </div>
+                <button id="btnHelp" class="btn btn-icon" title="Commands & Information">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Chat Body -->
+        <div class="main-body">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <!-- Discussion Rooms Section -->
+                <div class="sidebar-section">
+                    <div class="section-header">
+                        <span class="section-title">ROOMS & GROUPS</span>
+                        <button id="btnJoinRoomModal" class="btn-action-icon" title="Join or create room (#join)">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="roomsList" class="room-list">
+                        <!-- Rooms rendered by JS -->
+                        <div class="room-item active" data-room="public">
+                            <span class="room-prefix">#</span>
+                            <span class="room-name">public</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Online Users Section -->
+                <div class="sidebar-section users-section">
+                    <div class="section-header">
+                        <span class="section-title">ONLINE USERS (<span id="userCount">0</span>)</span>
+                    </div>
+                    <div id="usersList" class="user-list">
+                        <!-- Users rendered by JS -->
+                        <div class="empty-state">No other users online</div>
+                    </div>
+                </div>
+
+                <!-- Server Info Footer -->
+                <div class="sidebar-footer">
+                    <div class="info-row">
+                        <span>Web Interface:</span>
+                        <code>:8080</code>
+                    </div>
+                    <div class="info-row">
+                        <span>TCP Telnet:</span>
+                        <code>:33000</code>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat View -->
+            <main class="chat-area">
+                <!-- Chat View Header -->
+                <div class="chat-header">
+                    <div class="chat-target-info">
+                        <div class="target-title" id="chatTargetTitle">
+                            <span class="target-prefix">#</span>
+                            <span id="targetName">public</span>
+                        </div>
+                        <div class="target-desc" id="chatTargetDesc">Default public room for all connected clients</div>
+                    </div>
+                    <div class="chat-header-actions">
+                        <button id="btnClearChat" class="btn btn-secondary btn-sm" title="Clear messages in this view">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages Feed -->
+                <div id="messagesContainer" class="messages-container">
+                    <div class="system-welcome">
+                        <div class="welcome-card">
+                            <h3>Welcome to Instant Message Server</h3>
+                            <p>You can chat in public or custom rooms, send private messages, and interact with TCP Telnet clients in real time.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Command Helper Chips -->
+                <div class="quick-commands-bar">
+                    <span class="qc-label">Quick Commands:</span>
+                    <button class="qc-chip" data-cmd="#setMyName ">#setMyName</button>
+                    <button class="qc-chip" data-cmd="#join ">#join</button>
+                    <button class="qc-chip" data-cmd="#leave ">#leave</button>
+                    <button class="qc-chip" data-cmd="#sendPrivate ">#sendPrivate</button>
+                    <button class="qc-chip" data-cmd="#groups">#groups</button>
+                </div>
+
+                <!-- Chat Input Form -->
+                <form id="chatForm" class="chat-input-bar">
+                    <div class="input-wrapper">
+                        <input type="text" id="messageInput" placeholder="Message #public or type a command (#...)" autocomplete="off">
+                    </div>
+                    <button type="submit" id="btnSend" class="btn btn-primary btn-send" title="Send message (Enter)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        <span>Send</span>
+                    </button>
+                </form>
+            </main>
+        </div>
+
+        <!-- Name Setup / Change Modal -->
+        <div id="nameModal" class="modal-overlay">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3 id="nameModalTitle">Choose Your Nickname</h3>
+                </div>
+                <div class="modal-body">
+                    <p id="nameModalSubtitle">Enter your nickname to join the Instant Message Server. Spaces are not allowed.</p>
+                    <form id="nameForm">
+                        <div class="form-group">
+                            <label for="nicknameInput">Nickname</label>
+                            <input type="text" id="nicknameInput" class="form-input" placeholder="e.g. Adam" autofocus required>
+                            <div id="nameError" class="form-error hidden"></div>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" id="btnCancelNameModal" class="btn btn-secondary hidden">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Continue</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Join Room Modal -->
+        <div id="roomModal" class="modal-overlay hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3>Join or Create Room</h3>
+                    <button type="button" class="modal-close" id="btnCloseRoomModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <p>Enter the room name you want to join or create. Rooms must be a single word without spaces.</p>
+                    <form id="roomForm">
+                        <div class="form-group">
+                            <label for="roomInput">Room Name</label>
+                            <input type="text" id="roomInput" class="form-input" placeholder="e.g. dev, gaming, study" required>
+                            <div id="roomError" class="form-error hidden"></div>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" id="btnCancelRoomModal" class="btn btn-secondary">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Join Room</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help / Documentation Modal -->
+        <div id="helpModal" class="modal-overlay hidden">
+            <div class="modal-card modal-large">
+                <div class="modal-header">
+                    <h3>Instant Message Server - Help & Protocol</h3>
+                    <button type="button" class="modal-close" id="btnCloseHelpModal">✕</button>
+                </div>
+                <div class="modal-body help-content">
+                    <h4>Overview</h4>
+                    <p>This application implements the <strong>Bonus Task: GUI for Instant Message Server</strong>, integrating a modern Web GUI with full backward-compatibility for TCP Telnet clients from Task 4.</p>
+                    
+                    <h4>Command Reference (Task 4 Protocol)</h4>
+                    <table class="help-table">
+                        <thead>
+                            <tr>
+                                <th>Command</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>#setMyName &lt;name&gt;</code></td>
+                                <td>Changes your nickname. Name must be without spaces and unique.</td>
+                            </tr>
+                            <tr>
+                                <td><code>#join &lt;room&gt;</code></td>
+                                <td>Joins or creates a discussion room.</td>
+                            </tr>
+                            <tr>
+                                <td><code>#leave &lt;room&gt;</code></td>
+                                <td>Leaves a discussion room.</td>
+                            </tr>
+                            <tr>
+                                <td><code>#groups</code></td>
+                                <td>Lists all rooms you are currently in.</td>
+                            </tr>
+                            <tr>
+                                <td><code>#sendPrivate &lt;user&gt; &lt;msg&gt;</code></td>
+                                <td>Sends a private direct message to the specified user.</td>
+                            </tr>
+                            <tr>
+                                <td><em>any plain text</em></td>
+                                <td>Broadcasts message to all clients sharing at least one room with you.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Cross-Platform Interoperability</h4>
+                    <p>Clients can connect both through this <strong>Web browser</strong> and via <strong>TCP Telnet</strong> (<code>telnet localhost 33000</code>). Messages and private chats are routed transparently between both client types!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
