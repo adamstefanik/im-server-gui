@@ -1,104 +1,112 @@
-[![Java](https://img.shields.io/badge/Java-17%2B-blue?style=flat)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.2-6DB33F?style=flat&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![WebSocket](https://img.shields.io/badge/WebSocket-Native-orange?style=flat)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
+![Java](https://img.shields.io/badge/Java-17+-blue.svg) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.2-6DB33F.svg) ![WebSocket](https://img.shields.io/badge/WebSocket-Native-orange.svg) ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-# Instant Message Server GUI
+# IM Server GUI
 
-A modern, web-enabled Instant Message server featuring an interactive dark-mode Web GUI and transparent cross-platform communication with legacy TCP Telnet clients.
+Web-based interface for the Instant Message Server from Assignment 4 with real-time WebSocket communication and concurrent TCP Telnet client support.
 
 ## Features
 
-**Core Messaging**
-- Instant room-based messaging with automatic enrollment into the default public channel.
-- Multi-room routing ensuring messages are isolated to participants sharing discussion groups.
-- One-to-one private direct messaging between any connected users.
+**Web Interface**
+- Dark-mode interface built with vanilla HTML5, CSS3, and JavaScript
+- Nickname selection and change with server-side uniqueness check
+- Discussion rooms with active channel switching (`#public` by default)
+- Online user roster with client type indicators (Web vs Telnet)
+- Direct private messaging view with dedicated chat history
+- Quick command bar for one-click insertion of Assignment 4 commands
+- No external frontend dependencies, frameworks, or build tools
 
-**Cross-Platform Interoperability**
-- Concurrent support for both modern Web browser clients and TCP Telnet clients.
-- Full protocol parity supporting CLI commands (`#setMyName`, `#join`, `#leave`, `#groups`, `#sendPrivate`).
-- Unified routing engine synchronizing messages transparently across Web and Telnet connections.
-
-**Interactive Web Interface**
-- Responsive dark-mode interface with zero external CSS/JS dependencies.
-- Dynamic channel switching, user presence roster, and dedicated Direct Message views.
-- Interactive modal dialogs and quick-command helpers for streamlined user interaction.
+**Server & Protocols**
+- Dual listener architecture: HTTP & WebSocket on port 8080, raw TCP on port 33000
+- Transparent message routing between browser clients and terminal Telnet sessions
+- Group-based message isolation (messages only visible to clients sharing a room)
+- Full protocol command parity: `#setMyName`, `#join`, `#leave`, `#groups`, `#sendPrivate`
+- Thread-safe session management with automatic cleanup on disconnect
 
 ## Tech Stack
 
-- **Java 17+**: Core backend execution environment.
-- **Spring Boot 4**: Application framework providing embedded Tomcat and dependency management.
-- **Spring WebSocket**: Native low-latency WebSocket communication layer.
-- **HTML5 & CSS3**: Vanilla, dependency-free responsive frontend design.
+- **Java 17+**
+- **Spring Boot 4** (Spring Web, Spring WebSocket)
+- **Vanilla JavaScript** (native WebSocket API)
+- **Pure CSS3** (no Tailwind, Bootstrap, or build pipelines)
 
 ## Requirements
 
-- Java JDK 17 or higher
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Optional: Telnet client or Netcat (`nc`) for terminal testing
+- Java JDK 17+
+- Modern web browser
+- Optional: `nc` or `telnet` for terminal testing
 
 ## How to Run
 
+**Gradle (Development)**
 1. Navigate to the project directory:
    ```bash
    cd im-server-gui
    ```
-
-2. Build and start the server using the Gradle wrapper:
+2. Start the application:
    ```bash
    ./gradlew bootRun
    ```
+3. Open `http://localhost:8080` in your browser.
 
-   Alternatively, package and run the standalone executable archive:
+**Standalone JAR**
+1. Build the archive:
    ```bash
    ./gradlew build
+   ```
+2. Run the JAR:
+   ```bash
    java -jar build/libs/im-server-gui-0.0.1-SNAPSHOT.jar
    ```
+3. Open `http://localhost:8080` in your browser.
 
-3. Open the Web GUI in your browser:
-   ```text
-   http://localhost:8080
-   ```
-   Choose a unique nickname without spaces and begin chatting in `#public`, creating rooms, or messaging online users.
-
-4. Optional: Connect a TCP Telnet client in a separate terminal:
+**Terminal Client (Optional)**
+1. In a separate terminal window, connect to the TCP port:
    ```bash
    nc localhost 33000
-   # or
+   ```
+   or:
+   ```bash
    telnet localhost 33000
    ```
-   Enter your name when prompted and exchange messages with both web and terminal clients in real time.
+2. Enter your nickname when prompted (`Enter your name:`).
+3. Send broadcast messages or commands (`#join dev`, `#sendPrivate WebUser hello`). Messages synchronize with the web interface in real time.
+
+**Run Tests**
+```bash
+./gradlew test
+```
 
 ## Structure
 
-```text
+```
 im-server-gui/
 ├── src/
 │   ├── main/
 │   │   ├── java/utb/fai/
-│   │   │   ├── ActiveHandlers.java          # Thread-safe client registry and message routing engine
-│   │   │   ├── ClientSession.java           # Unified abstraction for Web and TCP clients
-│   │   │   ├── ImServerGuiApplication.java  # Spring Boot entry point and bean configuration
-│   │   │   ├── TcpClientSession.java        # TCP Telnet client session handler (Task 4 compatible)
+│   │   │   ├── ActiveHandlers.java          # Thread-safe client registry and message router
+│   │   │   ├── ClientSession.java           # Unified client session interface
+│   │   │   ├── ImServerGuiApplication.java  # Spring Boot entry point and beans
+│   │   │   ├── TcpClientSession.java        # TCP Telnet client handler (Assignment 4 compatible)
 │   │   │   ├── TcpServerService.java        # Background TCP ServerSocket service on port 33000
-│   │   │   ├── WebSocketChatHandler.java    # Text WebSocket handler for browser clients
-│   │   │   ├── WebSocketClientSession.java  # WebSocket client session representation
-│   │   │   └── WebSocketConfig.java         # WebSocket endpoint configuration (/ws)
+│   │   │   ├── WebSocketChatHandler.java    # Native WebSocket handler for web clients
+│   │   │   ├── WebSocketClientSession.java  # WebSocket client session wrapper
+│   │   │   └── WebSocketConfig.java         # WebSocket endpoint registration (/ws)
 │   │   └── resources/
-│   │       ├── application.properties       # Server configuration (ports 8080 and 33000)
+│   │       ├── application.properties       # Server ports and configuration
 │   │       └── static/
 │   │           ├── css/
-│   │           │   └── style.css            # Dark-mode styling, layouts, and components
+│   │           │   └── style.css            # Dark-mode styles and responsive layout
 │   │           ├── js/
-│   │           │   └── app.js               # Vanilla WebSocket client logic and DOM rendering
-│   │           └── index.html               # Web GUI layout and modals
+│   │           │   └── app.js               # WebSocket client logic and DOM updates
+│   │           └── index.html               # Web interface structure and modals
 │   └── test/
 │       └── java/utb/fai/
-│           └── ImServerGuiApplicationTests.java # End-to-end integration and protocol tests
-├── build.gradle                             # Gradle build configuration and dependencies
-└── gradlew                                  # Gradle wrapper executable
+│           └── ImServerGuiApplicationTests.java # TCP, WebSocket, and cross-platform tests
+├── build.gradle                             # Dependencies and Gradle build config
+├── gradlew                                  # Gradle wrapper script
+└── README.md
 ```
 
 ## License
 
-Made with Spring Boot by <a href="https://github.com/adamstefanik">Adam Samuel Štefánik</a>.
+Made with Java by <a href="https://github.com/adamstefanik">Adam Samuel Štefánik</a>.
